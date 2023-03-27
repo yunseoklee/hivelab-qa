@@ -1,148 +1,244 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from locators import *
-from selenium.common.exceptions import ElementClickInterceptedException
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, InvalidSelectorException, WebDriverException
 from openpyxl.drawing.image import Image
+from selenium.webdriver.common.by import By
 
-import time, openpyxl, os
-
+import time, openpyxl, os, re
 
 class BasePage(object):
     def __init__(self, driver):
         self.driver = driver
-        
 
 #로그인 페이지 클래스
 class LoginPage(BasePage):
     #semdev 로그인 함수
     def dev_login(self, ID, PW):
-        self.driver.find_element(*DevLoginPageLocators.ID_INPUT).send_keys(ID)
-        self.driver.find_element(*DevLoginPageLocators.PW_INPUT).send_keys(PW)
-        self.driver.find_element(*DevLoginPageLocators.LOGIN_BTN).send_keys(Keys.ENTER)
+        self.driver.find_element(By.NAME, "user_id").send_keys(ID)
+        self.driver.find_element(By.NAME, "user_pw").send_keys(PW)
+        self.driver.find_element(By.CLASS_NAME, "btn").send_keys(Keys.ENTER)
     #p6 로그인 함수
     def p6_login(self, ID, PW):
-        self.driver.find_element(*P6LoginPageLocators.ID_INPUT).send_keys(ID)
-        self.driver.find_element(*P6LoginPageLocators.PW_INPUT).send_keys(PW)
-        self.driver.find_element(*P6LoginPageLocators.LOGIN_BTN).send_keys(Keys.ENTER)
+        self.driver.find_element(By.NAME, "j_username").send_keys(ID)
+        self.driver.find_element(By.NAME, "j_password").send_keys(PW)
+        self.driver.find_element(By.CLASS_NAME, "coral3-Button").send_keys(Keys.ENTER)
 
+#메인 function 클래스
+class MainFunction(BasePage):
+    ###########################
+    # 1번 산출물: 카피덱 반영 확인
+    def copydeck_applied(self, excelName, sheetName):
 
-#Highlights 페이지 클래스
-class HighlightsPage(BasePage):
-    #컬러칩 클릭
-    def colorchip_click_screenshot(self, waitTime):
-        # 컬러칩 element 찾기
-        colorchips = self.driver.find_elements(*HighlightsPageLocators.COLORCHIP)
-        # 현재 작업중인 폴더찾기
-        cwd = os.getcwd()
-        # 스크린샷 저장할 폴더 경로
-        screenshot_dir = os.path.join(cwd, "highlight_colorchip_screenshot")
-        # 스크린샷 저장할 폴더 미존재 시 만들기
-        if not os.path.exists(screenshot_dir):
-            os.makedirs(screenshot_dir)
-        # 모든 컬러칩에 순차적으로 접근
-        for x in colorchips:
-            #컬러칩 클릭
-            x.click()
-            # 스크린샷 경로 설정
-            screenshot_path = os.path.join(screenshot_dir, str(x.text) + ".png")
-            time.sleep(waitTime)
-            # 스크린샷 할 이미지 element
-            screenshot_element = self.driver.find_element(*HighlightsPageLocators.COLORS_SECTION)
-            # 스크린샷 하여 스크린샷 경로에 저장
-            screenshot_element.screenshot(screenshot_path)
-            time.sleep(waitTime)
-
-    # copydeck 텍스트 반영 확인
-    def copydeck_text_applied(self, sectionName, cell_range, excelName):
         # 엑셀 설정
         self.wb = openpyxl.load_workbook(filename=excelName)
-        self.ws = self.wb.active
-        # 섹션 이름을 locator에서 받아와 text 가져오기
-        SectionText = self.driver.find_element(*sectionName).text
-        # print(SectionText)
-        # 셀 범위에서 각 셀 별 값 읽기
-        for cell in self.ws[cell_range]:
-            # 각 셀의 값
-            column_value = cell[0].value
-            # 결과 값을 현재셀 우측에 입력
-            result_cell = self.ws.cell(row=cell[0].row, column=cell[0].column+1)
-            # 셀 값 미존재 시 
-            if str(column_value) == "None":
-                # 결과셀에 'None' 입력
-                result_cell.value = 'None'
-            # 셀 값 존재 시
-            else:
-                # 셀 값이 해당 섹션에 존재 시
-                if str(column_value) in SectionText:
-                    # 결과셀에 'Pass' 입력
-                    result_cell.value = 'Pass'
-                # 셀 값이 해당 섹션에 미 존재 시
+        self.ws = self.wb[sheetName]
+        self.ws['E2'] = self.driver.current_url
+
+        # 스크린샷 저장을 위한 폴더 설정
+        folder_name = "copdydeckText_screenshot"
+        current_directory = os.getcwd()
+        new_folder_path = os.path.join(current_directory, folder_name)
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+        else:
+            pass
+
+        time.sleep(3)
+
+        #모든 Q&A 창 펼치기
+        ss = "$('.highlights-faq__question-arrow').click()"
+        self.driver.execute_script(ss)
+
+        number=0
+        pageWholeText = self.driver.find_element(By.XPATH, "/html/body").text
+
+        for i in range(4, 303):
+            excelCopydeckText = self.ws['C'+str(i)].value
+
+            if excelCopydeckText is not None and excelCopydeckText in pageWholeText:
+                # 텍스트에 개행 존재 시 첫번째 줄의 텍스트만 사용
+                first_line_text = excelCopydeckText.split('\n')[0]
+
+                number = number + 1
+                self.ws['D'+str(i)] = "PASS"
+
+                if any(char.isdigit() for char in first_line_text):
+                    match = re.search(r'^\D+', first_line_text)
+                    if match is not None:
+                        first_line_text = match.group()
+                    else:
+                        pass
                 else:
-                    # 결과셀에 'Fail' 입력
-                    result_cell.value = 'Fail'
+                    pass
+
+                try:
+                    element = self.driver.find_element(By.XPATH, "//*[contains(text(), \"{}\")]".format(first_line_text))
+
+                    # calculate the x and y coordinates of the element
+                    x = element.location['x'] - self.driver.execute_script("return window.innerWidth") / 2
+                    y = element.location['y'] - self.driver.execute_script("return window.innerHeight") / 2
+                    # scroll to the element
+                    self.driver.execute_script("window.scrollTo({0}, {1});".format(x, y))
+
+                    self.driver.execute_script("arguments[0].style.background = 'red'", element)
+
+                    time.sleep(1)
+
+                    screenshot_path = os.path.join(new_folder_path, str(number)+".png")
+                    self.driver.save_screenshot(screenshot_path)
+
+                    textImage = Image(screenshot_path)
+                    textImage.height = 500
+                    textImage.width = 900
+                    self.ws.add_image(textImage, 'E'+str(i))
+
+                    self.driver.execute_script("arguments[0].style.background = ''", element)
+                    time.sleep(0.5)
+                except InvalidSelectorException as e:
+                    print("InvalidSelector Exception occurred: {}".format(str(e)))
+                except NoSuchElementException as e:
+                    print("NoSuchElement Exception occurred: {}".format(str(e)))
+            elif excelCopydeckText is not None and excelCopydeckText not in pageWholeText:
+                self.ws['D'+str(i)] = "FAIL"
+            elif excelCopydeckText is None:
+                self.ws['D'+str(i)] = "None"
+            else:
+                pass
+        
         # 파일저장
         self.wb.save(filename=excelName)
 
+    ###########################
+    # 2번 산출물: 하이라이트 페이지 리포트
+    def page_report(self, excelName, sheetName, waitTime):
+        
+        # 엑셀 설정
+        self.wb = openpyxl.load_workbook(filename=excelName)
+        self.ws = self.wb[sheetName]
 
-#Compare 페이지 클래스
-class ComparePage(BasePage):
-    #컬러칩 클릭
-    def colorchip_click_screenshot(self, waitTime):
-        # 모든 칼럼 찾기
-        columns = self.driver.find_elements(*ComparePageLocators.COLUMN)
-        # 모든 칼럼에 순차적으로 접근
-        for i, column in enumerate(columns):
-            # 디바이스 모델 element
-            devices = column.find_elements(*ComparePageLocators.DEVICE)
-            # 디바이스 리스트 BTN element
-            deviceListBtn = column.find_element(*ComparePageLocators.SELECT_DEVICE_BTN)
-            # 현재 작업중인 폴더찾기
-            cwd = os.getcwd()
-            # 스크린샷 저장할 폴더 경로
-            screenshot_dir = os.path.join(cwd, "compare_colorchip_screenshot")
-            # 스크린샷 저장할 폴더 미존재 시 만들기
-            if not os.path.exists(screenshot_dir):
-                os.makedirs(screenshot_dir)
-            # 모든 디바이스에 순차적으로 접근
-            for d in devices:
-                # 디바이스 목록 확장 버튼 클릭
-                deviceListBtn.click()
-                time.sleep(waitTime)
-                # 디바이스 클릭
-                d.click()
-                # 컬러칩 element
-                colorchips = column.find_elements(*ComparePageLocators.COLORCHIP)
-                #모든 컬러칩 클릭 후 이미지 저장
-                for x in colorchips:
-                    try:
-                        #컬러칩이 페이지에 보여질 시에만
-                        if x.is_displayed():
-                            #컬러칩 클릭
-                            x.click()
-                            #파일명을 위한 변수
-                            colorchipLabel = x.find_element(*ComparePageLocators.COLORCHIP_LABEL)
-                            fileName = colorchipLabel.get_attribute("for")
+        # 스크린샷 저장을 위한 폴더 설정
+        folder_name = "elements_screenshot"
+        current_directory = os.getcwd()
+        new_folder_path = os.path.join(current_directory, folder_name)
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+        else:
+            pass
 
-                            # set the screenshot path
-                            screenshot_path = os.path.join(screenshot_dir, str(fileName) + ".png")
-                            time.sleep(waitTime)
-                            screenshot_element = column.find_element(*ComparePageLocators.COLORCHIP_IMAGE)
-                            screenshot_element.screenshot(screenshot_path)
-                            time.sleep(waitTime)
-                    except ElementClickInterceptedException:
-                        print("Can't click")
+        self.ws['C3'] = self.driver.current_url
 
+        # ID 속성이 비어있지 않은 모든 element를 찾고, 특정 ID들과 ID값들을 제외
+        elements_with_id = self.driver.find_elements(By.XPATH,"//*[@id and not(@id='wrap') and not(@id='accessibility-navigation') and not(@id='header') and not(@id='gnb') and not(@id='g-products') and not(@id='g-campaigns') and not(@id='g-event') and not(@id='g-apps') and not(@id='cseSearchForm') and not(@id='cseOpenButton') and not(@id='addsearch-body') and not(@id='contents') and not(@id='subnav') and not(@id='faq_item1') and not(@id='faq_item2') and not(@id='faq_item3') and not(@id='faq_item4') and not(@id='faq_item5') and not(@id='faq_item6') and not(@id='faq_item7') and not(@id='faq_item8') and not(@id='desc-section') and not(@id='footer') and not(@id='accessibility-contrast') and not(@id='bandwidth-control') and not(@id='terms-and-conditions') and not(@id='footer-sitemap') and not(@id='modal-layer-popup') and not(@id='color-lavender') and not(@id='color-cream') and not(@id='color-phantom-black') and not(@id='color-green') and not(@id='')]")
 
-#Common 클래스
-class Common(BasePage):
-    #디스클레이머 카피덱 반영 확인
+        #번호 카운트를 위한 변수
+        numberForCount = 0
+
+        # ID를 가지고 있는 모든 element에 접근
+        for element in elements_with_id:
+            numberForCount = numberForCount + 1
+            elementIdValue = element.get_attribute('id')
+            # element ID값 엑셀에 쓰기
+            self.ws["B"+str(numberForCount+4)] = elementIdValue
+
+            # 해당 element로 이동
+            self.driver.execute_script("arguments[0].scrollIntoView();", element)
+            time.sleep(waitTime)
+            # 100픽셀 만큼 스크롤업
+            self.driver.execute_script("window.scrollBy(0,-100);")
+            time.sleep(waitTime)
+            # 스크린 샷 경로 및 이미지명 지정
+            screenshot_path = os.path.join(new_folder_path, str(elementIdValue)+".png")
+            # 스크린 샷
+            try:
+                element.screenshot(screenshot_path)
+                elementImage = Image(screenshot_path)
+                elementImage.height = 475
+                elementImage.width = 600
+                self.ws.add_image(elementImage, 'G'+str(numberForCount+4))
+            except WebDriverException:
+                self.ws["G"+str(numberForCount+4)] = "Can't take screenshot"
+            
+            # 클래스 이름이 blind인 element들을 각 element에서 찾기
+            blind_elems = element.find_elements(By.CLASS_NAME, "blind")
+            # 각 element text 변수
+            element_text = element.text
+
+            # 각 element에 이미지가 있는지 확인
+            img_elems = element.find_elements(By.TAG_NAME, "img")
+            if img_elems:
+                all_values_str = ""
+                all_alt_str = ""
+
+                for i, img_elem in enumerate(img_elems):
+                    img_src_pc = img_elem.get_attribute("data-src-pc")
+                    img_src_tablet = img_elem.get_attribute("data-src-tablet")
+                    img_src_mobile = img_elem.get_attribute("data-src-mobile")
+                    img_alt = img_elem.get_attribute("alt")
+
+                    values_list = []
+                    alt_list = []
+
+                    if img_src_pc:
+                        values_list.append("Image src-pc: " + str(img_src_pc))
+                    if img_src_tablet:
+                        values_list.append("Image src-tablet: " + str(img_src_tablet))
+                    if img_src_mobile:
+                        values_list.append("Image src-mobile: " + str(img_src_mobile))
+                    if img_alt:
+                        alt_list.append("Image alt: " + str(img_alt))
+                    
+                    values_str = "\n".join(values_list)
+                    all_values_str += values_str + "\n"
+                    alt_str = "\n".join(alt_list)
+                    all_alt_str += alt_str + "\n"
+                
+                if all_values_str == " ":
+                    self.ws['C'+str(numberForCount+4)] = "None"
+                else:
+                    self.ws['C'+str(numberForCount+4)] = all_values_str.strip()
+                if all_alt_str == " ":
+                    self.ws['D'+str(numberForCount+4)] = "None"
+                else:
+                    self.ws['D'+str(numberForCount+4)] = all_alt_str.strip()
+            
+            if blind_elems:
+                all_blind_str = ""
+
+                for blind_elem in blind_elems:
+                    blind_text = blind_elem.get_attribute("innerHTML")
+                    blind_list = []
+                    if blind_text:
+                        blind_list.append("Blind text: " + str(blind_text))
+                    
+                    blinds_str = "\n".join(blind_list)
+                    all_blind_str += blinds_str + "\n"
+
+                    element_text = element_text.replace(blind_elem.text, "")
+
+                if all_blind_str == " ":
+                    self.ws['E'+str(numberForCount+4)] = "None"
+                else:
+                    self.ws['E'+str(numberForCount+4)] = all_blind_str.strip()
+            
+            if element_text == "":
+                self.ws['F'+str(numberForCount+4)] = ""
+            else:
+                self.ws['F'+str(numberForCount+4)] = element_text
+        # 파일저장
+        self.wb.save(filename=excelName)
+
+    ###########################
+    # 3번 산출물: 악세사리 페이지 리포트
+
+    ###########################
+    # 4번 산출물: 각주 자동화 리포트
+    # 4-1번: 최하단 디스클레이머 카피덱 반영 확인
     def copydeck_disclaimerText_applied(self, excelName, sheetName):
         # 엑셀 설정
         self.wb = openpyxl.load_workbook(filename=excelName)
         self.ws = self.wb[sheetName]
         #최하단 디스클레이머 영역 번호가 몇번까지 있는지 확인
-        diclaimernumber = self.driver.find_elements(*CommonLocators.DISCLAIMER_NUMBERS_IN_MAINTEXT)
+        diclaimernumber = self.driver.find_elements(By. CLASS_NAME, "click_sup")
         maxDisclaimerValue = 0
 
         for x in diclaimernumber:
@@ -166,9 +262,9 @@ class Common(BasePage):
         # 파일저장
         self.wb.save(filename=excelName)
     
-    #본문 각주 번호 클릭하려 최하단 디스클레이머 영역으로 이동 확인
+    # 4-2번: 본문 각주 번호 클릭하여 최하단 디스클레이머 영역으로 이동 확인
     def body_disclaimerNumber_click(self, excelName, sheetName, clickOption):
-        
+
         # 스크린샷 저장을 위한 폴더 설정
         folder_name = "afterClick_screenshot"
         # get the current working directory
@@ -187,7 +283,7 @@ class Common(BasePage):
         self.ws = self.wb[sheetName]
 
         # 본문 각주번호 모두 찾기
-        bodyText_disclaimerNumber = self.driver.find_elements(*CommonLocators.DISCLAIMER_NUMBERS_IN_MAINTEXT)
+        bodyText_disclaimerNumber = self.driver.find_elements(By. CLASS_NAME, "click_sup")
         #각주 합계를 구하기 위한 변수
         totalNumDisclaimer = 0
         #모든 Q&A 창 펼치기
@@ -234,9 +330,9 @@ class Common(BasePage):
         
         # 파일저장
         self.wb.save(filename=excelName)
-    
-    # 55개국 최하단 각주 번호 순서대로 출력확인
-    def bottomDisclaimerNumber_order_check(self, excelName, sheetName):
+
+    # 4-3번: 55개국 최하단 각주번호 순서 확인
+    def bottomDisclaimerNumber_order_check(self, fontUrl, backUrl, excelName, sheetName):
         # 엑셀 설정
         self.wb = openpyxl.load_workbook(filename=excelName)
         self.ws = self.wb[sheetName]
@@ -252,7 +348,7 @@ class Common(BasePage):
             for cell in column:
                 # 셀 값 가져오기
                 cell_value = cell.value
-                url = "https://www.samsung.com/" + str(cell_value) + "/smartphones/galaxy-s23-ultra/"
+                url = fontUrl + cell_value + backUrl
                 #해당 url로 이동
                 driver = webdriver.Chrome(options=options)
                 driver.get(url)
@@ -261,9 +357,9 @@ class Common(BasePage):
 
                 try:
                     # 최하단 각주 영역 가져오기
-                    bottomDisclaimerSection = driver.find_element(*CommonLocators.BOTTOM_DISCLAIMER_SECTION)
+                    bottomDisclaimerSection = driver.find_element(By.TAG_NAME, "ol")
                     # 최하단 각주 번호 가져오기
-                    eachDisclaimerNumber = bottomDisclaimerSection.find_elements(*CommonLocators.EACH_BOTTOM_DISCLAIMER_ELEMENT)
+                    eachDisclaimerNumber = bottomDisclaimerSection.find_elements(By.CLASS_NAME, "common-bottom-disclaimer__list-item")
                     # 각주 번호가 1번부터 오름차순으로 되어있는지 확인
                     for n in eachDisclaimerNumber:
                         normalNumber = normalNumber + 1
@@ -282,15 +378,88 @@ class Common(BasePage):
         # 파일저장
         self.wb.save(filename=excelName)
 
+    ###########################
+    # 5번 산출물: 태깅 자동화 리포트
+    def tagging_automation_report(self, excelName, sheetName, waitTime):
+        
+        # 윈도우 사이즈 500x900으로 변경
+        self.driver.set_window_size(500, 900)
 
+        # 엑셀 설정
+        self.wb = openpyxl.load_workbook(filename=excelName)
+        self.ws = self.wb[sheetName]
+        self.ws['E2'] = self.driver.current_url
 
+        # 스크린샷 저장을 위한 폴더 설정
+        folder_name = "tagging_screenshot"
+        current_directory = os.getcwd()
+        new_folder_path = os.path.join(current_directory, folder_name)
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+        else:
+            pass
 
+        time.sleep(waitTime)
 
+        number = 0
+        #페이지 전체 source 코드 가져오기
+        html_source = self.driver.page_source
 
+        for i in range(4, 303):
+            # 엑셀에서 태깅 코드 가져오기
+            excelTaggingCode = self.ws['C'+str(i)].value
+            if excelTaggingCode is not None and excelTaggingCode in html_source:
+                number = number + 1
+                self.ws['G'+str(i)] = "PASS"
 
+                # 태깅 형식 변경
+                attribute_regex = r'(\S+)="([^"]*)"'
+                matches = re.findall(attribute_regex, excelTaggingCode)
+                desired_text = '[' + ']['.join([f'{attr}="{value}"' for attr, value in matches]) + ']'
 
+                try:
+                    # 해당 태깅의 element 찾기
+                    element = self.driver.find_element(By.CSS_SELECTOR, f'{str(desired_text)}')
 
+                    # 태깅 정보 엑셀에 쓰기
+                    self.ws['D'+str(i)] = element.tag_name
+                    self.ws['E'+str(i)] = str(element.is_displayed())
+                    self.ws['F'+str(i)] = element.text
 
+                    # element의 x 와 y 좌표 구하기
+                    x = element.location['x'] - self.driver.execute_script("return window.innerWidth") / 2
+                    y = element.location['y'] - self.driver.execute_script("return window.innerHeight") / 2
+                    # element로 스크롤
+                    self.driver.execute_script("window.scrollTo({0}, {1});".format(x, y))
 
+                    # 해당 태깅 버튼에 빨간색 강조 처리
+                    self.driver.execute_script("arguments[0].style.background = 'red'", element)
 
+                    time.sleep(waitTime)
 
+                    screenshot_path = os.path.join(new_folder_path, str(number)+".png")
+
+                    if str(element.is_displayed()) == "True":
+                        self.driver.save_screenshot(screenshot_path)
+                        tagImage = Image(screenshot_path)
+                        tagImage.height = 500
+                        tagImage.width = 900
+                        self.ws.add_image(tagImage, 'H' +str(i))
+                    else:
+                        pass
+
+                    #강조처리 했던것 초기화
+                    self.driver.execute_script("arguments[0].style.background = ''", element)
+                    time.sleep(waitTime)
+                except InvalidSelectorException as e:
+                    print("InvalidSelector Exception occurred: {}".format(str(e)))
+                except NoSuchElementException as e:
+                    print("NoSuchElement Exception occurred: {}".format(str(e)))
+            elif excelTaggingCode is not None and excelTaggingCode not in html_source:
+                self.ws['G'+str(i)] = "FAIL"
+            elif excelTaggingCode is None:
+                self.ws['G'+str(i)] = "None"
+            else:
+                pass
+        # 파일저장
+        self.wb.save(filename=excelName)
