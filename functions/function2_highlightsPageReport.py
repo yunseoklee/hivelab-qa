@@ -1,4 +1,3 @@
-from selenium import webdriver
 from openpyxl.drawing.image import Image as ExcelImage
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
