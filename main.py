@@ -16,8 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 커스텀 모듈인 functions 불러오기
-import functions.function1_copyApplied, functions.function2_highlightsPageReport, functions.function3_accessoriesPageReport, functions.function4_disclaimerReport, functions.function5_taggingReport
-
+import functions.function1_copyApplied, functions.function2_highlightsPageReport, functions.function3_accessoriesPageReport, functions.function4_disclaimerReport, functions.function5_taggingReport,functions.function6_anchorListReport
 class MainTest(unittest.TestCase):
     
     # 테스트를 위한 설정
@@ -138,6 +137,12 @@ class MainTest(unittest.TestCase):
         excelfile = 'Tagging_Result.xlsx'
         sheetname = 'Sheet1'
         tagging.tagging_automation_report(excelfile, sheetname, 1)
+    
+    # 6번 산출물: 앵커 스크린샷 리포트
+    def _test_tagging_automation(self):
+        functions.function6_anchorListReport.MainFunction.anchorList()
+
+
 
 if __name__ == "__main__":
     unittest.main()
