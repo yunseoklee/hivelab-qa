@@ -40,7 +40,7 @@ class MainFunction(BasePage):
             excelTaggingCode = self.ws['C'+str(i)].value
             if excelTaggingCode is not None and excelTaggingCode in html_source:
                 number = number + 1
-                self.ws['G'+str(i)] = "PASS"
+                self.ws['E'+str(i)] = "PASS"
 
                 # 태깅 형식 변경
                 attribute_regex = r'(\S+)="([^"]*)"'
@@ -53,7 +53,7 @@ class MainFunction(BasePage):
 
                     # 태깅 정보 엑셀에 쓰기
                     self.ws['D'+str(i)] = element.tag_name
-                    self.ws['E'+str(i)] = str(element.is_displayed())
+                    self.ws['G'+str(i)] = str(element.is_displayed())
                     self.ws['F'+str(i)] = element.text
 
                     # element의 x 와 y 좌표 구하기
@@ -86,9 +86,9 @@ class MainFunction(BasePage):
                 except NoSuchElementException as e:
                     print("NoSuchElement Exception occurred: {}".format(str(e)))
             elif excelTaggingCode is not None and excelTaggingCode not in html_source:
-                self.ws['G'+str(i)] = "FAIL"
+                self.ws['E'+str(i)] = "FAIL"
             elif excelTaggingCode is None:
-                self.ws['G'+str(i)] = "None"
+                self.ws['E'+str(i)] = "None"
             else:
                 pass
         # 파일저장
