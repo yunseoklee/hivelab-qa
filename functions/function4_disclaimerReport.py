@@ -116,10 +116,10 @@ class MainFunction(BasePage):
         self.wb = openpyxl.load_workbook(filename=excelName)
         self.ws = self.wb[sheetName]
 
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        options.add_argument('headless')
-        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
+        # options = webdriver.ChromeOptions()
+        # options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        # options.add_argument('headless')
+        # options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
 
         # C3:BE3 범위에 셀에 접근
         for column in self.ws.iter_cols(min_row=3, max_row=3, min_col=3, max_col=57):
@@ -128,15 +128,16 @@ class MainFunction(BasePage):
                 # 셀 값 가져오기
                 cell_value = cell.value
                 url = fontUrl + cell_value + backUrl
+
+                time.sleep(1)
                 #해당 url로 이동
-                driver = webdriver.Chrome(options=options)
-                driver.get(url)
+                self.driver.get(url)
 
                 normalNumber = 0
 
                 try:
                     # 최하단 각주 영역 가져오기
-                    bottomDisclaimerSection = driver.find_element(By.TAG_NAME, "ol")
+                    bottomDisclaimerSection = self.driver.find_element(By.TAG_NAME, "ol")
                     # 최하단 각주 번호 가져오기
                     eachDisclaimerNumber = bottomDisclaimerSection.find_elements(By.CLASS_NAME, "common-bottom-disclaimer__list-item")
                     # 각주 번호가 1번부터 오름차순으로 되어있는지 확인
@@ -149,7 +150,6 @@ class MainFunction(BasePage):
                             self.ws.cell(row= cell.row + normalNumber, column=cell.column, value=int(bottomDisclaimerNumber))
                         else:
                             pass
-                    driver.close()
                 
                 except NoSuchElementException as e:
                     print("NoSuchElement Exception occurred: {}".format(str(e)))

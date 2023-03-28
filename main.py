@@ -106,6 +106,7 @@ class MainTest(unittest.TestCase):
             if idx == len(acc_image)-1:
                 bann = mainFunction.bottom_banner(self.driver, list_target,list_route,all_counts,bann,all_images)
         mainFunction.make_file(list_number,list_target,list_route,all_images, all_counts)
+    
     # 4번 산출물: 각주 자동화 리포트
     # 4-1번: 최하단 디스클레이머 카피덱 반영 확인
     def _test_bottomDisclaimer_copy_applied(self):
