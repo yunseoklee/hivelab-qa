@@ -1,35 +1,41 @@
-from selenium import webdriver
 from PIL import Image as PILImage
 from io import BytesIO
 import openpyxl, os, time
 
-driver = webdriver.Chrome()
-driver.maximize_window()
-workbook = openpyxl.load_workbook('anchorList.xlsx')
-# 엑셀파일 실행
-worksheet = workbook['test']
-# worksheet = workbook[시트 이름] : 실행 시킨 엑셀 파일에서 지정한 시트 불러오기 
-current_directory = os.getcwd()
-# 현재 작업 디렉토리(current working directory)를 반환
-if not os.path.exists("anchorList_Screenshot"):
-    os.makedirs("anchorList_Screenshot")
-# 스크린샷을 담을 폴더 생성
-folder_name = "anchorList_Screenshot"
-screenshot_path = os.path.join(current_directory,folder_name)
-# 현제 작업 디렉토리와 생성한 폴더 디렉토리 경로 연결 : 이미지 경로 생성
+class BasePage(object):
+    def __init__(self, driver):
+        self.driver = driver
 
-
-# 6번 산출물: 엥커 리스트 스크린샷 리포트
 #메인 function 클래스
-class MainFunction():
-    def anchorList(self):
-        for i in range(2,5):
-            link = worksheet['C'+str(i)].value
-            driver.get(link)
-            screenshot = driver.get_screenshot_as_png()
-            # 드라이버 이미지 스샷 찍기
-            image = PILImage.open(BytesIO(screenshot))
-            # 바이트로 변경 후 이미지 형식으로 오픈
-            image.save(os.path.join(screenshot_path , worksheet['B'+str(i)].value + ".png"))
-            # 이미지 파일을 이미지 저장 경로 폴더에 저장, 스샷 이름은 워크시트 B열을 가져옴 : 국가.png"
-            time.sleep(0.2)
+class MainFunction(BasePage):
+    # 6번 산출물: 앵커 스크린샷 리포트
+    def anchorList(self, excelName, sheetName, waitTime):
+
+        # 윈도우 사이즈 최대
+        self.driver.maximize_window()
+
+        # 엑셀 설정
+        self.wb = openpyxl.load_workbook(filename=excelName)
+        self.ws = self.wb[sheetName]
+
+        # 스크린샷 저장을 위한 폴더 설정
+        folder_name = "anchorList_Screenshot"
+        current_directory = os.getcwd()
+        new_folder_path = os.path.join(current_directory, folder_name)
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+        else:
+            pass
+
+        for i in range(2,200):
+            link = self.ws['C'+str(i)].value
+            if link is not None:
+                self.driver.get(link)
+                screenshot = self.driver.get_screenshot_as_png()
+                time.sleep(waitTime)
+                # 드라이버 이미지 스샷 찍기
+                image = PILImage.open(BytesIO(screenshot))
+                # 바이트로 변경 후 이미지 형식으로 오픈
+                image.save(os.path.join(new_folder_path, self.ws['B'+str(i)].value + ".png"))
+                # 이미지 파일을 이미지 저장 경로 폴더에 저장, 스샷 이름은 워크시트 B열을 가져옴 : 국가.png"
+                time.sleep(waitTime)

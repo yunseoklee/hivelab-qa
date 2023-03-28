@@ -100,8 +100,11 @@ class MainTest(unittest.TestCase):
         tagging.tagging_automation_report(excelfile, sheetname, 1)
     
     # 6번 산출물: 앵커 스크린샷 리포트
-    def _test_tagging_automation(self):
-        functions.function6_anchorListReport.MainFunction.anchorList()
+    def test_anchor_screenshot_automation(self):
+        anchor = functions.function6_anchorListReport.MainFunction(self.driver)
+        excelfile = 'anchorList.xlsx'
+        sheetname = 'test'
+        anchor.anchorList(excelfile, sheetname, 1)
 
 
 
