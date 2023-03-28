@@ -63,48 +63,9 @@ class MainTest(unittest.TestCase):
     
     # 3번 산출물: 악세서리 페이지 리포트 
     # ※※※악세서리 페이지 리포트 추출 하기 전 url 변경 필요※※※
-    def test_acc_report(self):
-        
-        from selenium.webdriver.common.by import By
-        self.driver.maximize_window()
+    def _test_acc_report(self):
         mainFunction = functions.function3_accessoriesPageReport.MainFunction(self.driver)
-        acc_image = self.driver.find_elements(By.CSS_SELECTOR,"picture")
-        product_color = self.driver.find_elements(By.CSS_SELECTOR, "div.accessories__product-contents")
-        acc_product_count = self.driver.find_elements(By.CSS_SELECTOR,"div.accessories__product")
-
-
-        product_counts = []# 제품 구간
-        for count in  acc_product_count:
-            count = count.find_elements(By.CSS_SELECTOR,"li.accessories__product-item")
-            product_counts.append(len(count))
-        #product_counts = [9,3,2,3]
-
-        product_option = []# 제품 구간 별 제품 옵션 구간
-        for count in  acc_product_count:
-            count = count.find_elements(By.CSS_SELECTOR,"ul.accessories__product-option-list")
-            product_option.append(len(count))
-        # product_option = [9, 0, 0, 3]
-
-        color = 0
-        counts = 0
-        click_count = 0
-
-        img = 0 #이미지 수 
-        bann = 0
-
-        all_counts = [] # 이미지가 들어가야 될 행 
-        list_number = [] # 숫자
-        list_target = [] # 대상
-        list_route = [] # 값
-        all_images = [] # 이미지 경로 리스트 
-        
-        for idx, acc in enumerate(acc_image):
-            mainFunction.kv_visual_src_img(idx, acc, list_target, list_route, all_counts, self.driver, all_images)
-            if idx < len(acc_image) and idx > 0 :
-                (color, counts, click_count) = mainFunction.product_acc_item_scr_img_alt(product_counts,idx,acc_product_count,product_option,product_color,counts,click_count,color,list_target,list_route,all_counts,self.driver,img,all_images)
-            if idx == len(acc_image)-1:
-                bann = mainFunction.bottom_banner(self.driver, list_target,list_route,all_counts,bann,all_images)
-        mainFunction.make_file(list_number,list_target,list_route,all_images, all_counts)
+        mainFunction.acc_page_report()
     
     # 4번 산출물: 각주 자동화 리포트
     # 4-1번: 최하단 디스클레이머 카피덱 반영 확인
