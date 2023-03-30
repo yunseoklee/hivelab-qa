@@ -11,10 +11,13 @@ class BasePage(object):
 #메인 function 클래스
 class MainFunction(BasePage):
     # 4-1번: 최하단 디스클레이머 카피덱 반영 확인
-    def copydeck_disclaimerText_applied(self, excelName, sheetName):
+    def copydeck_disclaimerText_applied(self, excelName, sheetName, waitTime):
         # 엑셀 설정
         self.wb = openpyxl.load_workbook(filename=excelName)
         self.ws = self.wb[sheetName]
+
+        time.sleep(waitTime)
+
         #최하단 디스클레이머 영역 번호가 몇번까지 있는지 확인
         diclaimernumber = self.driver.find_elements(By. CLASS_NAME, "click_sup")
         maxDisclaimerValue = 0
@@ -41,7 +44,7 @@ class MainFunction(BasePage):
         self.wb.save(filename=excelName)
 
     # 4-2번: 본문 각주 번호 클릭하여 최하단 디스클레이머 영역으로 이동 확인
-    def body_disclaimerNumber_click(self, excelName, sheetName, clickOption):
+    def body_disclaimerNumber_click(self, excelName, sheetName, clickOption, waitTime):
 
         # 스크린샷 저장을 위한 폴더 설정
         folder_name = "afterClick_screenshot"
@@ -59,6 +62,8 @@ class MainFunction(BasePage):
         # 엑셀 설정
         self.wb = openpyxl.load_workbook(filename=excelName)
         self.ws = self.wb[sheetName]
+
+        time.sleep(waitTime)
 
         # 본문 각주번호 모두 찾기
         bodyText_disclaimerNumber = self.driver.find_elements(By. CLASS_NAME, "click_sup")
@@ -110,7 +115,7 @@ class MainFunction(BasePage):
         self.wb.save(filename=excelName)
 
     # 4-3번: 55개국 최하단 각주번호 순서 확인
-    def bottomDisclaimerNumber_order_check(self, fontUrl, backUrl, excelName, sheetName):
+    def bottomDisclaimerNumber_order_check(self, fontUrl, backUrl, excelName, sheetName, waitTime):
         # 엑셀 설정
         self.wb = openpyxl.load_workbook(filename=excelName)
         self.ws = self.wb[sheetName]
@@ -128,7 +133,7 @@ class MainFunction(BasePage):
                 cell_value = cell.value
                 url = fontUrl + cell_value + backUrl
 
-                time.sleep(1)
+                time.sleep(waitTime)
                 #해당 url로 이동
                 self.driver.get(url)
 

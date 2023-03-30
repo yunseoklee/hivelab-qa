@@ -73,7 +73,7 @@ class MainTest(unittest.TestCase):
         disclaimer = functions.function4_disclaimerReport.MainFunction(self.driver)
         excelfile = 'Disclaimer_Result.xlsx'
         sheetname = 'Sheet1'
-        disclaimer.copydeck_disclaimerText_applied(excelfile, sheetname)
+        disclaimer.copydeck_disclaimerText_applied(excelfile, sheetname, 2)
 
     # 4-2번: 본문 각주 번호 클릭하려 최하단 디스클레이머 영역으로 이동 확인
     def _test_disclaimerNumber_click(self):
@@ -81,7 +81,7 @@ class MainTest(unittest.TestCase):
         excelfile = 'Disclaimer_Result.xlsx'
         sheetname = 'Sheet1'
         option = '1'
-        disclaimer.body_disclaimerNumber_click(excelfile, sheetname, option)
+        disclaimer.body_disclaimerNumber_click(excelfile, sheetname, option, 2)
 
     # 4-3번: 55개국 최하단 각주번호 순서 확인
     def _test_bottomDisclaimerNumber_order_check(self):
@@ -90,7 +90,7 @@ class MainTest(unittest.TestCase):
         backurl = '/smartphones/galaxy-s23-ultra/'
         excelfile = 'Disclaimer_Result.xlsx'
         sheetname = 'Sheet2'
-        disclaimer.bottomDisclaimerNumber_order_check(fronturl, backurl, excelfile, sheetname)
+        disclaimer.bottomDisclaimerNumber_order_check(fronturl, backurl, excelfile, sheetname, 1.5)
     
     # 5번 산출물: 태깅 자동화 리포트
     def _test_tagging_automation(self):
