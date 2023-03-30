@@ -69,6 +69,9 @@ class MainFunction(BasePage):
         bodyText_disclaimerNumber = self.driver.find_elements(By. CLASS_NAME, "click_sup")
         #각주 합계를 구하기 위한 변수
         totalNumDisclaimer = 0
+        # 쿠키 팝업 닫기
+        cookie = "$('.truste-custom-samsung-link').click()"
+        self.driver.execute_script(cookie)
         #모든 Q&A 창 펼치기
         ss = "$('.highlights-faq__question-arrow').click()"
         self.driver.execute_script(ss)
@@ -79,16 +82,16 @@ class MainFunction(BasePage):
             if clickOption == "1":
                 #해당 element로 스크롤
                 self.driver.execute_script("arguments[0].scrollIntoView();", x)
-                time.sleep(2)
+                time.sleep(waitTime)
                 #클릭
                 self.driver.execute_script("arguments[0].click();", x)
             #2번 입력 시
             elif clickOption == "2":
                 #ENTER키를 사용하여 element 클릭
                 x.send_keys(Keys.ENTER)
-                time.sleep(2)
+                time.sleep(waitTime)
             
-            time.sleep(1)
+            time.sleep(waitTime)
 
             #해당 element text 가져오기
             text = x.get_attribute("textContent")
@@ -109,7 +112,7 @@ class MainFunction(BasePage):
             afterImg.width = 900
             self.ws.add_image(afterImg, 'I'+str(totalNumDisclaimer+3))
 
-            time.sleep(2)
+            time.sleep(waitTime)
         
         # 파일저장
         self.wb.save(filename=excelName)
