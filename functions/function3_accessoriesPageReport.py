@@ -15,7 +15,6 @@ class MainFunction(BasePage):
         self.driver.maximize_window()
         acc_image = self.driver.find_elements(By.CSS_SELECTOR,"picture")
         product_color = self.driver.find_elements(By.CSS_SELECTOR, "div.accessories__product-contents")
-        acc_colorchip = self.driver.find_elements(By.CSS_SELECTOR,"div.accessories__colorchip-arrow")
         acc_product_count = self.driver.find_elements(By.CSS_SELECTOR,"div.accessories__product")
 
 
@@ -23,13 +22,11 @@ class MainFunction(BasePage):
         for count in  acc_product_count:
             count = count.find_elements(By.CSS_SELECTOR,"li.accessories__product-item")
             product_counts.append(len(count))
-        #product_counts = [9,3,2,3]
 
         product_option = []# 제품 구간 별 제품 옵션 구간
         for count in  acc_product_count:
             count = count.find_elements(By.CSS_SELECTOR,"ul.accessories__product-option-list")
             product_option.append(len(count))
-        # product_option = [9, 0, 0, 3]
 
         all_counts = [] 
 
@@ -46,6 +43,14 @@ class MainFunction(BasePage):
         list_route = [] # 값
         all_images = [] # 이미지 경로 리스트 
 
+        folder_name = "acc_screenshot"
+
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+
+        current_directory = os.getcwd()
+        screenshot_path = os.path.join(current_directory,folder_name)
+            
 
         for idx, acc in enumerate(acc_image):
             if acc.find_elements(By.TAG_NAME,"source"):
@@ -81,13 +86,6 @@ class MainFunction(BasePage):
                 image = PILImage.open(BytesIO(screenshot))
                 image = image.crop((left, top, right, bottom))
 
-
-                if not os.path.exists("acc_screenshot"):
-                    os.makedirs("acc_screenshot")
-
-                folder_name = "acc_screenshot"
-                current_directory = os.getcwd()
-                screenshot_path = os.path.join(current_directory,folder_name)
                 image.save(os.path.join(screenshot_path,"kv.png"))
                 all_images.append(os.path.join(screenshot_path,"kv.png"))
                 print("save_kv_scr_alt_img")
@@ -111,9 +109,6 @@ class MainFunction(BasePage):
                 image = PILImage.open(BytesIO(screenshot))
                 image = image.crop((left, 96, right, bottom + 96)) 
 
-                folder_name = "acc_screenshot"
-                current_directory = os.getcwd()
-                screenshot_path = os.path.join(current_directory,folder_name)
                 image.save(os.path.join(screenshot_path, "visual" + str(idx) + ".png"))
                 all_images.append(os.path.join(screenshot_path ,"visual" + str(idx) + ".png"))
                 print("save_visual" + str(idx) + "_scr_alt_img")
@@ -182,9 +177,6 @@ class MainFunction(BasePage):
                         image = PILImage.open(BytesIO(screenshot))
                         image = image.crop((left, 96, right, bottom + 96)) 
 
-                        folder_name = "acc_screenshot"
-                        current_directory = os.getcwd()
-                        screenshot_path = os.path.join(current_directory,folder_name)
                         image.save(os.path.join(screenshot_path, product_item_name +" "+ product_name +" "+ product_item_color + ".png"))
                         all_images.append(os.path.join(screenshot_path, product_item_name +" "+ product_name +" "+ product_item_color + ".png"))
                         img = img + 1
@@ -213,6 +205,7 @@ class MainFunction(BasePage):
                     bann = 0
                     acc_banner = self.driver.find_elements(By.CSS_SELECTOR,"div.common-banner__container")
 
+                if idx == len(product_counts)-1:
                     for banner in acc_banner:
                         banner_img = banner.find_element(By.TAG_NAME,"img")
                         list_target.append("data-src-pc") # 이미지 태그 이름
@@ -244,9 +237,6 @@ class MainFunction(BasePage):
                         image = PILImage.open(BytesIO(screenshot))
                         image = image.crop((left, 96, right, bottom + 96)) 
 
-                        folder_name = "acc_screenshot"
-                        current_directory = os.getcwd()
-                        screenshot_path = os.path.join(current_directory,folder_name)
                         image.save(os.path.join(screenshot_path,"Bottom_banner"+str(bann)+".png"))
                         all_images.append(os.path.join(screenshot_path,"Bottom_banner"+str(bann)+".png"))
 
@@ -280,7 +270,6 @@ class MainFunction(BasePage):
 
         i = 0
         c = 1
-        # a = 1
 
         for i in range(0,len(list_target)):
             list_number.append(i+1)
@@ -321,3 +310,4 @@ class MainFunction(BasePage):
 
         if len(list_number) == len(list_target):
             print("file create complete")
+
