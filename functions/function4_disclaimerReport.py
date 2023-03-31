@@ -78,41 +78,43 @@ class MainFunction(BasePage):
 
         #본문에 모든 각주 클릭하여 이동된 화면 스크린샷 저장
         for x in bodyText_disclaimerNumber:
-            #1번 입력 시
-            if clickOption == "1":
-                #해당 element로 스크롤
-                self.driver.execute_script("arguments[0].scrollIntoView();", x)
+            # 보여지는 각주만 클릭
+            if x.is_displayed():
+                #1번 입력 시
+                if clickOption == "1":
+                    #해당 element로 스크롤
+                    self.driver.execute_script("arguments[0].scrollIntoView();", x)
+                    time.sleep(waitTime)
+                    #클릭
+                    self.driver.execute_script("arguments[0].click();", x)
+                #2번 입력 시
+                elif clickOption == "2":
+                    #ENTER키를 사용하여 element 클릭
+                    x.send_keys(Keys.ENTER)
+                    time.sleep(waitTime)
+                
                 time.sleep(waitTime)
-                #클릭
-                self.driver.execute_script("arguments[0].click();", x)
-            #2번 입력 시
-            elif clickOption == "2":
-                #ENTER키를 사용하여 element 클릭
-                x.send_keys(Keys.ENTER)
+
+                #해당 element text 가져오기
+                text = x.get_attribute("textContent")
+                #현재까지 클릭한 각주 갯수 계산
+                totalNumDisclaimer = totalNumDisclaimer + 1
+                # 총 각주 갯수로 스크린샷을 특정 폴더에 저장
+                screenshot_path = os.path.join(new_folder_path, "after_" + str(totalNumDisclaimer)+".png")
+                self.driver.save_screenshot(screenshot_path)
+
+                #엑셀 파일에 입력
+                #Number
+                self.ws['G'+str(totalNumDisclaimer+3)] = totalNumDisclaimer
+                #각주번호
+                self.ws['H'+str(totalNumDisclaimer+3)] = text
+
+                afterImg = ExcelImage(screenshot_path)
+                afterImg.height = 500
+                afterImg.width = 900
+                self.ws.add_image(afterImg, 'I'+str(totalNumDisclaimer+3))
+
                 time.sleep(waitTime)
-            
-            time.sleep(waitTime)
-
-            #해당 element text 가져오기
-            text = x.get_attribute("textContent")
-            #현재까지 클릭한 각주 갯수 계산
-            totalNumDisclaimer = totalNumDisclaimer + 1
-            # 총 각주 갯수로 스크린샷을 특정 폴더에 저장
-            screenshot_path = os.path.join(new_folder_path, "after_" + str(totalNumDisclaimer)+".png")
-            self.driver.save_screenshot(screenshot_path)
-
-            #엑셀 파일에 입력
-            #Number
-            self.ws['G'+str(totalNumDisclaimer+3)] = totalNumDisclaimer
-            #각주번호
-            self.ws['H'+str(totalNumDisclaimer+3)] = text
-
-            afterImg = ExcelImage(screenshot_path)
-            afterImg.height = 500
-            afterImg.width = 900
-            self.ws.add_image(afterImg, 'I'+str(totalNumDisclaimer+3))
-
-            time.sleep(waitTime)
         
         # 파일저장
         self.wb.save(filename=excelName)
