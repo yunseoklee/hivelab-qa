@@ -31,6 +31,10 @@ class MainFunction(BasePage):
 
         time.sleep(waitTime)
 
+        # 쿠키 팝업 닫기
+        cookie = "$('.truste-custom-samsung-link').click()"
+        self.driver.execute_script(cookie)
+
         number = 0
         #페이지 전체 source 코드 가져오기
         html_source = self.driver.page_source
