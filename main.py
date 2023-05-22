@@ -16,7 +16,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 커스텀 모듈인 functions 불러오기
-import functions.function1_copyApplied, functions.function2_highlightsPageReport, functions.function3_accessoriesPageReport, functions.function4_disclaimerReport, functions.function5_taggingReport,functions.function6_anchorListReport
+import functions.function1_copyApplied, functions.function2_highlightsPageReport, functions.function3_accessoriesPageReport, functions.function4_disclaimerReport, functions.function5_taggingReport, functions.function6_anchorListReport, functions.function7_imageSrcCheck
+
 class MainTest(unittest.TestCase):
     
     # 테스트를 위한 설정
@@ -29,8 +30,7 @@ class MainTest(unittest.TestCase):
         # options.add_argument("headless")
 
         self.driver = webdriver.Chrome(options=options)
-        url = ("https://semdev.hivelab.co.kr:3443/global/galaxy/galaxy-s23-ultra/")
-        # url = ("https://semdev.hivelab.co.kr:3443/global/galaxy/galaxy-s23-ultra/accessories/")
+        url = ("https://semdev.hivelab.co.kr:3443/global/galaxy/galaxy-s23/gallery/")
         self.driver.get(url)
 
         #로그인 설정
@@ -80,7 +80,7 @@ class MainTest(unittest.TestCase):
         disclaimer = functions.function4_disclaimerReport.MainFunction(self.driver)
         excelfile = 'Disclaimer_Result.xlsx'
         sheetname = 'Sheet1'
-        option = '1'
+        option = '2'
         disclaimer.body_disclaimerNumber_click(excelfile, sheetname, option, 2)
 
     # 4-3번: 55개국 최하단 각주번호 순서 확인
@@ -100,12 +100,16 @@ class MainTest(unittest.TestCase):
         tagging.tagging_automation_report(excelfile, sheetname, 1)
     
     # 6번 산출물: 앵커 스크린샷 리포트
-    def test_anchor_screenshot_automation(self):
+    def _test_anchor_screenshot_automation(self):
         anchor = functions.function6_anchorListReport.MainFunction(self.driver)
         excelfile = 'anchorList.xlsx'
         sheetname = 'test'
         anchor.anchorList(excelfile, sheetname, 1)
 
+    # 7번 산출물: 이미지 경로 유효성 체크
+    def test_image_src_check(self):
+        image_src = functions.function7_imageSrcCheck.MainFunction(self.driver)
+        image_src.imageSrcCheck()
 
 
 if __name__ == "__main__":
