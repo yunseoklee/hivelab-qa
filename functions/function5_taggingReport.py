@@ -31,7 +31,7 @@ class MainFunction(BasePage):
 
         time.sleep(waitTime)
 
-        # 쿠키 팝업 닫기
+        # 쿠키 팝업 닫기s
         cookie = "$('.truste-custom-samsung-link').click()"
         self.driver.execute_script(cookie)
 

@@ -16,7 +16,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 # 커스텀 모듈인 functions 불러오기
-import functions.function1_copyApplied, functions.function2_highlightsPageReport, functions.function3_accessoriesPageReport, functions.function4_disclaimerReport, functions.function5_taggingReport, functions.function6_anchorListReport, functions.function7_imageSrcCheck
+import functions.function1_copyApplied, functions.function2_highlightsPageReport
+import functions.function3_accessoriesPageReport, functions.function4_disclaimerReport
+import functions.function5_taggingReport, functions.function6_anchorListReport
+import functions.function7_imageSrcCheck, functions.function8_sectionReport
 
 class MainTest(unittest.TestCase):
     
@@ -107,9 +110,16 @@ class MainTest(unittest.TestCase):
         anchor.anchorList(excelfile, sheetname, 1)
 
     # 7번 산출물: 이미지 경로 유효성 체크
-    def test_image_src_check(self):
+    def _test_image_src_check(self):
         image_src = functions.function7_imageSrcCheck.MainFunction(self.driver)
         image_src.imageSrcCheck()
+
+    # 8번 산출물: 피쳐, 배너 , CTA 유무 및 url 체크
+    def test_section_check(self):
+        section = functions.function8_sectionReport.MainFunction(self.driver)
+        excelfile = 'url_LIVE.xlsx'
+        sheetname = 'Sheet1'
+        section.sectioncheck(excelfile, sheetname)
 
 
 if __name__ == "__main__":
