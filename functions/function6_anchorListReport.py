@@ -27,7 +27,7 @@ class MainFunction(BasePage):
         else:
             pass
 
-        for i in range(2,200):
+        for i in range(2,self.ws.max_row+1):
             link = self.ws['C'+str(i)].value
             if link is not None:
                 self.driver.get(link)
