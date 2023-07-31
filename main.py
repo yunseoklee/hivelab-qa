@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 # 키입력을 위한 라이브러리
 from selenium.webdriver.common.keys import Keys
 
+
 # 커스텀 모듈인 functions 불러오기
 import functions.function1_copyApplied, functions.function2_highlightsPageReport
 import functions.function3_accessoriesPageReport, functions.function4_disclaimerReport
